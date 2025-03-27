@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         chzzk_knife_tracker
 // @namespace    chzzk_knife_tracker
-// @version      0.0.1
+// @version      0.0.2
 // @description  칼이나 치지직 인증뱃지를 달고있는 채팅을 채팅창 상단에 모아서 저장합니다
 // @author       wisenb
 // @match        https://chzzk.naver.com/*
