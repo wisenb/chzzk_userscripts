@@ -29,7 +29,7 @@
       #filtered-chat-box {
         display: flex;
         flex-direction: column-reverse;
-        height: 130px;
+        height: 60px;
         overflow-y: auto;
         padding: 8px 8px 0 8px;
         margin: 0;
@@ -37,6 +37,9 @@
         border-radius: 0 0 6px 6px;
         background-color: rgba(30, 30, 30, 0.8);
         scrollbar-width: thin;
+        resize: vertical;
+        min-height: 60px;
+        max-height: 500px;
       }
       .live_chatting_list_wrapper__a5XTV {
         margin-top: 0 !important;
