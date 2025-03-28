@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         chzzk_knife_tracker
 // @namespace    chzzk_knife_tracker
-// @version      0.0.2
+// @version      0.0.3
 // @description  칼이나 치지직 인증뱃지를 달고있는 채팅을 채팅창 상단에 모아서 저장합니다
 // @author       wisenb
 // @match        https://chzzk.naver.com/*
@@ -36,7 +36,7 @@
         border-bottom: 2px solid #444;
         border-radius: 0 0 6px 6px;
         background-color: rgba(30, 30, 30, 0.8);
-        scrollbar-width: thin;
+        scrollbar-width: none;
         resize: vertical;
         min-height: 38px;
         max-height: 350px;
@@ -105,7 +105,9 @@
             const isAtBottom = filteredBox.scrollTop + filteredBox.clientHeight >= filteredBox.scrollHeight - 5;
 
             const cloned = node.cloneNode(true);
+            replaceBlockWithInline(cloned);
             filteredBox.insertBefore(cloned, filteredBox.firstChild);
+            addTimestampToMessage(cloned);
 
             while (filteredBox.children.length > MAX_MESSAGES) {
               filteredBox.removeChild(filteredBox.lastChild);
@@ -156,4 +158,44 @@
     waitForLiveChatThenInit();
     observePageChanges();
   });
+
+  function replaceBlockWithInline(clonedNode) {
+    const messageElement = clonedNode.querySelector('.live_chatting_message_chatting_message__7TKns');
+    if (!messageElement || messageElement.tagName !== 'DIV') return;
+
+    const span = document.createElement('span');
+    span.className = messageElement.className;
+    span.innerHTML = messageElement.innerHTML;
+    span.style.paddingLeft = '0px';
+    messageElement.replaceWith(span);
+  }
+
+  function addTimestampToMessage(clonedNode) {
+    const messageContainer = clonedNode.querySelector('[class^="live_chatting_message_container__"]');
+    if (!messageContainer) return;
+
+    const messageTextSpan = clonedNode.querySelector('.live_chatting_message_chatting_message__7TKns');
+    const computedStyle = window.getComputedStyle(messageTextSpan || messageContainer);
+    const computedFont = computedStyle.fontSize;
+    const originalFontSize = parseFloat(computedFont);
+    const newFontSize = isNaN(originalFontSize) ? 12 : Math.max(originalFontSize - 2, 10);
+
+    const now = new Date();
+    const hh = now.getHours().toString().padStart(2, '0');
+    const mm = now.getMinutes().toString().padStart(2, '0');
+    const timestamp = `${hh}:${mm}`;
+
+    const timeElem = document.createElement('span');
+    timeElem.textContent = `${timestamp} `;
+    timeElem.style.fontSize = `${newFontSize}px`;
+    timeElem.style.color = '#aaa';
+    timeElem.style.flexShrink = '0';
+    timeElem.style.display = 'inline';
+
+    if (messageTextSpan) {
+      messageTextSpan.prepend(timeElem);
+    } else {
+      messageContainer.prepend(timeElem);
+    }
+  }
 })();
