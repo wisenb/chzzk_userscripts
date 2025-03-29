@@ -150,7 +150,7 @@
   }
 
   function isFilteredUser(node) {
-    const admin = node.querySelector('.live_chatting_username_wrapper__iJpJB');
+    const admin = node.querySelector('.live_chatting_username_icon__6Dj7b img[alt="채팅 운영자"]');
     const verified = node.querySelector('.live_chatting_username_nickname__dDbbj .blind');
     return admin || (verified && verified.textContent.includes('인증 마크'));
   }
