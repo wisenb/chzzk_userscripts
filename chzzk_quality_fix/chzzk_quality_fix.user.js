@@ -1,15 +1,11 @@
 // ==UserScript==
 // @name         chzzk_quality_fix
 // @namespace    chzzk_quality_fix
-// @version      0.0.1
-// @description  화질이 항상 최대로 설정되게 하고 광고 차단 팝업을 삭제합니다
+// @version      0.0.2
+// @description  화질이 항상 최대로 설정되게 하고 광고 차단 팝업을 삭제합니다. 단축키: F(전체화면), M(음소거), T(뷰모드), Space/K(재생/일시정지)
 // @author       wisenb
 // @match        https://chzzk.naver.com/*
 // @grant        none
-// @homepage     https://github.com/wisenb/chzzk_userscripts
-// @supportURL   https://github.com/wisenb/chzzk_userscripts/issues
-// @downloadURL  https://github.com/wisenb/chzzk_userscripts/raw/main/chzzk_quality_fix/chzzk_quality_fix.user.js
-// @updateURL    https://github.com/wisenb/chzzk_userscripts/raw/main/chzzk_quality_fix/chzzk_quality_fix.user.js
 // @license      MIT
 // ==/UserScript==
 
@@ -125,7 +121,7 @@
     });
   }
 
-  /** 단축키: F, M, T */
+  /** 단축키: F(전체화면), M(음소거), T(뷰모드), Space/K(재생/일시정지) */
   function globalShortcut(e) {
     const textBox = document.querySelector('.live_chatting_input_input__2F3Et');
     const searchBox = document.querySelector('.search_input__tKVgq');
@@ -142,28 +138,38 @@
     if (!(e.altKey || e.ctrlKey || e.shiftKey || e.metaKey)) {
       switch (e.code) {
         case 'KeyM': {
-          // 음소거 토글
           const video = document.querySelector('.webplayer-internal-video');
           if (video) video.muted = !video.muted;
           return;
         }
         case 'KeyF': {
-          // 전체화면
           const fullBtn = document.querySelector('.pzp-pc-fullscreen-button');
           if (fullBtn) fullBtn.click();
           return;
         }
         case 'KeyT': {
-          // 뷰모드 버튼
           const viewBtn = document.querySelector('.pzp-pc__viewmode-button');
           if (viewBtn) viewBtn.click();
+          return;
+        }
+        case 'Space':
+        case 'KeyK': {
+          const video = document.querySelector('.webplayer-internal-video');
+          if (video) {
+            if (video.paused) {
+              video.play();
+            } else {
+              video.pause();
+            }
+            e.preventDefault(); // 스페이스 기본 동작(스크롤) 방지
+          }
           return;
         }
       }
     }
   }
 
-  document.addEventListener('keydown', (e) => globalShortcut(e));
+  document.addEventListener('keydown', globalShortcut);
 
   initAutoQualitySelection();
   observeAndHidePopup();
