@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         chzzk_knife_tracker
 // @namespace    chzzk_knife_tracker
-// @version      0.0.5
+// @version      0.0.6
 // @description  칼이나 치지직 인증뱃지를 달고있는 채팅을 채팅창 상단에 모아서 저장합니다
 // @author       wisenb
 // @match        https://chzzk.naver.com/*
@@ -75,19 +75,35 @@
     });
   }
 
-  function observePageChanges() {
-    const titleNode = document.querySelector('title');
-    if (!titleNode) return;
+  function observeURIChange(onChange) {
+    let previousURI = document.baseURI;
 
-    const observer = new MutationObserver(() => {
-      if (document.baseURI !== currentURI) {
-        currentURI = document.baseURI;
-        filteredMessages = [];
-        waitForLiveChatThenInit();
+    function dispatchLocationChange() {
+      const event = new Event('locationchange');
+      window.dispatchEvent(event);
+    }
+
+    const originalPushState = history.pushState;
+    history.pushState = function (...args) {
+      const result = originalPushState.apply(this, args);
+      dispatchLocationChange();
+      return result;
+    };
+
+    const originalReplaceState = history.replaceState;
+    history.replaceState = function (...args) {
+      const result = originalReplaceState.apply(this, args);
+      dispatchLocationChange();
+      return result;
+    };
+
+    window.addEventListener('popstate', dispatchLocationChange);
+    window.addEventListener('locationchange', () => {
+      if (document.baseURI !== previousURI) {
+        previousURI = document.baseURI;
+        onChange();
       }
     });
-
-    observer.observe(titleNode, { childList: true });
   }
 
   function init() {
@@ -128,7 +144,7 @@
           const filteredBox = document.getElementById('filtered-chat-box');
           if (!filteredBox) return;
 
-          const isAtBottom = filteredBox.scrollTop + filteredBox.clientHeight >= filteredBox.scrollHeight - 10; // 10px 여유
+          const isAtBottom = filteredBox.scrollTop + filteredBox.clientHeight >= filteredBox.scrollHeight - 10;
 
           const cloned = node.cloneNode(true);
           replaceBlockWithInline(cloned);
@@ -213,6 +229,9 @@
 
   window.addEventListener('load', () => {
     waitForLiveChatThenInit();
-    observePageChanges();
+    observeURIChange(() => {
+      filteredMessages = [];
+      waitForLiveChatThenInit();
+    });
   });
 })();
