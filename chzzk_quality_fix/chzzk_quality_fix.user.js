@@ -1,13 +1,19 @@
 // ==UserScript==
 // @name         chzzk_quality_fix
 // @namespace    chzzk_quality_fix
-// @version      0.0.2
+// @version      0.0.3
 // @description  화질이 항상 최대로 설정되게 하고 광고 차단 팝업을 삭제합니다. 단축키: F(전체화면), M(음소거), T(뷰모드), Space/K(재생/일시정지)
 // @author       wisenb
 // @match        https://chzzk.naver.com/*
 // @grant        none
 // @license      MIT
 // ==/UserScript==
+
+/*
+Original script by 고기 (https://greasyfork.org/en/scripts/527910-chzzk-%ED%95%B4%EC%83%81%EB%8F%84-1080p-%EC%9E%90%EB%8F%99-%EC%84%A0%ED%83%9D)
+Modified by wisenb (https://github.com/YourProfile or other contact)
+License: MIT
+*/
 
 (function () {
   'use strict';
@@ -32,31 +38,40 @@
       let qualityButton = document.querySelector('.pzp-setting-intro-quality');
       if (qualityButton) {
         triggerClick(qualityButton);
-
+        qualityObserver.disconnect();
         const itemObserver = new MutationObserver(() => {
           let qualityItems = document.querySelectorAll('.pzp-ui-setting-quality-item.pzp-ui-setting-pane-item');
+          if (qualityItems.length !== 4) {
+            //selectBestAvailableQuality();
+            return;
+          }
           if (qualityItems.length > 0) {
-            let targetQuality =
-              Array.from(qualityItems).find((item) => item.textContent.trim().startsWith('1080p')) || Array.from(qualityItems).find((item) => item.textContent.trim().startsWith('720p'));
-
+            let targetQuality = Array.from(qualityItems).find((item) => item.textContent.trim().includes('1080p')) || Array.from(qualityItems).find((item) => item.textContent.trim().includes('720p'));
             if (targetQuality) {
               triggerClick(targetQuality);
               let innerButton = targetQuality.querySelector('div') || targetQuality.querySelector('span');
               if (innerButton) triggerClick(innerButton);
+              document.head.querySelector('#hideQualitySettings').remove();
             }
             itemObserver.disconnect();
           }
         });
-
         itemObserver.observe(document.body, { childList: true, subtree: true });
-        qualityObserver.disconnect();
       }
     });
-
     qualityObserver.observe(document.body, { childList: true, subtree: true });
   }
 
   function initAutoQualitySelection() {
+    const style = document.createElement('style');
+    style.id = 'hideQualitySettings';
+    style.innerHTML = `
+            .pzp-setting-pane,
+            .pzp-setting-quality-pane,
+            .pzp-settings { display: none !important; }
+        `;
+    document.head.appendChild(style);
+
     const observer = new MutationObserver((mutations, obs) => {
       let settingButton = document.querySelector('.pzp-setting-button');
       if (settingButton) {
@@ -66,17 +81,6 @@
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
-
-    const style = document.createElement('style');
-    style.innerHTML = `
-          .pzp-setting-pane,
-          .pzp-setting-quality-pane,
-          .pzp-settings { display: none !important; }
-      `;
-    document.head.appendChild(style);
-    setTimeout(() => {
-      document.head.removeChild(style);
-    }, 1000);
   }
 
   function observeAndHidePopup() {
@@ -120,8 +124,8 @@
       }
     });
   }
-
-  /** 단축키: F(전체화면), M(음소거), T(뷰모드), Space/K(재생/일시정지) */
+  /*
+   단축키: F(전체화면), M(음소거), T(뷰모드), Space/K(재생/일시정지) 
   function globalShortcut(e) {
     const textBox = document.querySelector('.live_chatting_input_input__2F3Et');
     const searchBox = document.querySelector('.search_input__tKVgq');
@@ -134,7 +138,6 @@
       }
       return;
     }
-
     if (!(e.altKey || e.ctrlKey || e.shiftKey || e.metaKey)) {
       switch (e.code) {
         case 'KeyM': {
@@ -170,6 +173,7 @@
   }
 
   document.addEventListener('keydown', globalShortcut);
+  */
 
   initAutoQualitySelection();
   observeAndHidePopup();
